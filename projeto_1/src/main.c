@@ -2,6 +2,8 @@
 #include <unistd.h>         //Used for UART
 #include <fcntl.h>          //Used for UART
 #include <termios.h>        //Used for UART
+#include <crc16.h>
+#include <string.h>
 
 int main(int argc, const char * argv[]) {
 
@@ -28,21 +30,18 @@ int main(int argc, const char * argv[]) {
 
     // 15/014 7601
     unsigned char tx_buffer[20] = { 0x01, 0x23, 0xC1, 0x7, 0x6, 0x0, 0x1 };
-    unsigned char *p_tx_buffer;
-    
-    // p_tx_buffer = &tx_buffer[0];
-    // *p_tx_buffer++ = 'H';
-    // *p_tx_buffer++ = 'e';
-    // *p_tx_buffer++ = 'l';
-    // *p_tx_buffer++ = 'l';
-    // *p_tx_buffer++ = 'o';
+
+    short crc = calcula_CRC(tx_buffer, 7);
+
+    memcpy(&tx_buffer[7], &crc, 2);
+
 
     printf("Buffers de memória criados!\n");
     
     if (uart0_filestream != -1)
     {
         printf("Escrevendo caracteres na UART ...");
-        int count = write(uart0_filestream, &tx_buffer[0], (p_tx_buffer - &tx_buffer[0]));
+        int count = write(uart0_filestream, tx_buffer, 7+2); // 2 bytes of CRC
         if (count < 0)
         {
             printf("UART TX error\n");
@@ -71,8 +70,18 @@ int main(int argc, const char * argv[]) {
         }
         else
         {
-            //Bytes received
             rx_buffer[rx_length] = '\0';
+
+            printf("CRC calculado = %d\n", calcula_CRC(rx_buffer, 7));
+
+            short crc_rec;
+            memcpy(&crc_rec, &rx_buffer[7], 2);
+            printf("CRC recebido = %d\n", crc_rec);
+
+            float temperature;
+            memcpy(&temperature, &rx_buffer[3], 4);
+            printf("Temperature = %f\n", temperature);
+
             printf("%i Bytes lidos : %s\n", rx_length, rx_buffer);
         }
     }
