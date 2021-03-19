@@ -11,7 +11,10 @@ int main(int argc, const char * argv[]) {
 
     initialize_UART();
     float temperature = read_intern_temperature();
-    printf("Temperature in main = %f\n", temperature);
+    printf("Intern temperature in main = %f\n", temperature);
+
+    temperature = read_ref_temperature();
+    printf("Reference temperature in main = %f\n", temperature);
 
     close_UART();
 

@@ -4,5 +4,6 @@
 void initialize_UART();
 void close_UART();
 float read_intern_temperature();
+float read_ref_temperature();
 
 #endif

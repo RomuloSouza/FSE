@@ -7,6 +7,9 @@
 
 #define DELAY 1
 
+int _request_temperature(char code);
+float _read_temperature();
+
 int uart0_filestream = -1;
 
 void initialize_UART(){
@@ -32,7 +35,31 @@ void close_UART(){
 }
 
 float read_intern_temperature(){
-    unsigned char tx_buffer[20] = { 0x01, 0x23, 0xC1, 0x07, 0x06, 0x00, 0x01 };
+
+    const char code = 0xC1;
+    int status = _request_temperature(code);
+    if (status == -1)
+        return status;
+
+    sleep(DELAY);
+
+    return _read_temperature();
+
+}
+
+float read_ref_temperature(){
+    const char code = 0xC2;
+    int status = _request_temperature(code);
+    if (status == -1)
+        return status;
+
+    sleep(DELAY);
+
+    return _read_temperature();
+}
+
+int _request_temperature(char code){
+    unsigned char tx_buffer[20] = { 0x01, 0x23, code, 0x07, 0x06, 0x00, 0x01 };
 
     short crc = calcula_CRC(tx_buffer, 7);
     memcpy(&tx_buffer[7], &crc, 2);
@@ -43,26 +70,28 @@ float read_intern_temperature(){
     int count = write(uart0_filestream, tx_buffer, 7+2); // 2 bytes of CRC
     if (count < 0){
         printf("UART TX error\n");
-    } else{
-        printf("escrito.\n");
+        return -1;
     }
 
-    sleep(DELAY);
+    printf("escrito.\n");
+    return 0;
+}
+
+
+float _read_temperature(){
+    // Read up to 255 characters from the port if they are there
+    unsigned char rx_buffer[256];
+    float temperature = -1;
 
     if (uart0_filestream == -1)
         return -1;
 
-    // Read up to 255 characters from the port if they are there
-    unsigned char rx_buffer[256];
-    float temperature = -1;
     int rx_length = read(uart0_filestream, (void*)rx_buffer, 255); //Filestream, buffer to store in, number of bytes to read (max)
     if (rx_length < 0){
         printf("Error reading from UART.\n"); //An error occured (will occur if there are no bytes)
     } else if (rx_length == 0){
-        printf("No data available.\n"); //No data waiting
+        printf("No data available from UART.\n"); //No data waiting
     } else{
-        // rx_buffer[rx_length] = '\0';
-
         printf("CRC calculado = %d\n", calcula_CRC(rx_buffer, 7));
 
         short crc_rec;
@@ -72,78 +101,10 @@ float read_intern_temperature(){
         memcpy(&temperature, &rx_buffer[3], 4);
         printf("Temperature = %f\n", temperature);
 
-        printf("%i Bytes lidos : %s\n", rx_length, rx_buffer);
+        printf("%i Bytes lidos\n", rx_length);
     }
 
     return temperature;
-
 }
 
 
-// float read_ref_temperature(){
-
-// }
-
-
-// int main(int argc, const char * argv[]) {
-
-//     // 7601
-//     unsigned char tx_buffer[20] = { 0x01, 0x23, 0xC1, 0x07, 0x06, 0x00, 0x01 };
-
-//     short crc = calcula_CRC(tx_buffer, 7);
-
-//     memcpy(&tx_buffer[7], &crc, 2);
-
-//     printf("Buffers de memória criados!\n");
-    
-//     if (uart0_filestream != -1)
-//     {
-//         printf("Escrevendo caracteres na UART ...");
-//         int count = write(uart0_filestream, tx_buffer, 7+2); // 2 bytes of CRC
-//         if (count < 0)
-//         {
-//             printf("UART TX error\n");
-//         }
-//         else
-//         {
-//             printf("escrito.\n");
-//         }
-//     }
-
-//     sleep(1);
-
-//     //----- CHECK FOR ANY RX BYTES -----
-//     if (uart0_filestream != -1)
-//     {
-//         // Read up to 255 characters from the port if they are there
-//         unsigned char rx_buffer[256];
-//         int rx_length = read(uart0_filestream, (void*)rx_buffer, 255);      //Filestream, buffer to store in, number of bytes to read (max)
-//         if (rx_length < 0)
-//         {
-//             printf("Erro na leitura.\n"); //An error occured (will occur if there are no bytes)
-//         }
-//         else if (rx_length == 0)
-//         {
-//             printf("Nenhum dado disponível.\n"); //No data waiting
-//         }
-//         else
-//         {
-//             rx_buffer[rx_length] = '\0';
-
-//             printf("CRC calculado = %d\n", calcula_CRC(rx_buffer, 7));
-
-//             short crc_rec;
-//             memcpy(&crc_rec, &rx_buffer[7], 2);
-//             printf("CRC recebido = %d\n", crc_rec);
-
-//             float temperature;
-//             memcpy(&temperature, &rx_buffer[3], 4);
-//             printf("Temperature = %f\n", temperature);
-
-//             printf("%i Bytes lidos : %s\n", rx_length, rx_buffer);
-//         }
-//     }
-
-//     close(uart0_filestream);
-//    return 0;
-// }
