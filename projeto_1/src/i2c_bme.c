@@ -6,66 +6,14 @@
 #include <fcntl.h>
 
 #include "bme280.h"
-#include "i2c.h"
+#include "i2c_bme.h"
 
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 
-void open_i2c_conn(struct identifier *id);
-void initialize_I2C(struct identifier *id, struct bme280_dev *dev);
-
-void user_delay_us(uint32_t period, void *intf_ptr);
-void print_sensor_data(struct bme280_data *comp_data);
-int8_t user_i2c_read(uint8_t reg_addr, uint8_t *data, uint32_t len, void *intf_ptr);
-int8_t user_i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len, void *intf_ptr);
-int8_t read_temperature_i2c(struct bme280_dev *dev, float *temp);
-
-/*!
- * @brief This function provides the delay for required time (Microseconds) as per the input provided in some of the
- * APIs
- */
-void user_delay_us(uint32_t period, void *intf_ptr)
-{
-    usleep(period);
-}
-
-/*!
- * @brief This function reading the sensor's registers through I2C bus.
- */
-int8_t user_i2c_read(uint8_t reg_addr, uint8_t *data, uint32_t len, void *intf_ptr)
-{
-    struct identifier id;
-
-    id = *((struct identifier *)intf_ptr);
-
-    write(id.fd, &reg_addr, 1);
-    read(id.fd, data, len);
-
-    return 0;
-}
-
-/*!
- * @brief This function for writing the sensor's registers through I2C bus.
- */
-int8_t user_i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len, void *intf_ptr)
-{
-    uint8_t *buf;
-    struct identifier id;
-
-    id = *((struct identifier *)intf_ptr);
-
-    buf = malloc(len + 1);
-    buf[0] = reg_addr;
-    memcpy(buf + 1, data, len);
-    if (write(id.fd, buf, len + 1) < (uint16_t)len)
-    {
-        return BME280_E_COMM_FAIL;
-    }
-
-    free(buf);
-
-    return BME280_OK;
-}
+void _user_delay_us(uint32_t period, void *intf_ptr);
+int8_t _user_i2c_read(uint8_t reg_addr, uint8_t *data, uint32_t len, void *intf_ptr);
+int8_t _user_i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len, void *intf_ptr);
 
 /*!
  * @brief This API used to print the sensor temperature, pressure and humidity data.
@@ -180,9 +128,9 @@ void initialize_I2C(struct identifier *id, struct bme280_dev *dev){
     id->dev_addr = BME280_I2C_ADDR_PRIM;
     
     dev->intf = BME280_I2C_INTF;
-    dev->read = user_i2c_read;
-    dev->write = user_i2c_write;
-    dev->delay_us = user_delay_us;
+    dev->read = _user_i2c_read;
+    dev->write = _user_i2c_write;
+    dev->delay_us = _user_delay_us;
     dev->intf_ptr = &id;
 
     rslt = bme280_init(dev);
@@ -192,4 +140,53 @@ void initialize_I2C(struct identifier *id, struct bme280_dev *dev){
         fprintf(stderr, "Failed to initialize the device (code %+d).\n", rslt);
         exit(1);
     }
+}
+
+// ================================== LOCAL FUNCTIONS ==================================
+
+/*!
+ * @brief This function provides the delay for required time (Microseconds) as per the input provided in some of the
+ * APIs
+ */
+void _user_delay_us(uint32_t period, void *intf_ptr)
+{
+    usleep(period);
+}
+
+/*!
+ * @brief This function reading the sensor's registers through I2C bus.
+ */
+int8_t _user_i2c_read(uint8_t reg_addr, uint8_t *data, uint32_t len, void *intf_ptr)
+{
+    struct identifier id;
+
+    id = *((struct identifier *)intf_ptr);
+
+    write(id.fd, &reg_addr, 1);
+    read(id.fd, data, len);
+
+    return 0;
+}
+
+/*!
+ * @brief This function for writing the sensor's registers through I2C bus.
+ */
+int8_t _user_i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len, void *intf_ptr)
+{
+    uint8_t *buf;
+    struct identifier id;
+
+    id = *((struct identifier *)intf_ptr);
+
+    buf = malloc(len + 1);
+    buf[0] = reg_addr;
+    memcpy(buf + 1, data, len);
+    if (write(id.fd, buf, len + 1) < (uint16_t)len)
+    {
+        return BME280_E_COMM_FAIL;
+    }
+
+    free(buf);
+
+    return BME280_OK;
 }

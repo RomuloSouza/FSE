@@ -8,7 +8,7 @@
 
 #include <sys/types.h>
 
-#include <i2c.h>
+#include <i2c_bme.h>
 #include <bme280.h>
 
 int main(int argc, const char * argv[]) {
