@@ -34,9 +34,7 @@ void close_UART(){
     close(uart0_filestream);
 }
 
-float read_intern_temperature(){
-
-    const char code = 0xC1;
+float read_temperature(char code){
     int status = _request_temperature(code);
     if (status == -1)
         return status;
