@@ -47,14 +47,14 @@ int fd;  // seen by all subroutines
 
 void write_LCD(float te, float tref, float tin){
     lcdLoc(LINE1);
-    typeln("TI: ");
+    typeln("TI:");
     typeFloat(tin);
 
-    typeln(" TE: ");
+    typeln(" TE:");
     typeFloat(te);
 
     lcdLoc(LINE2);
-    typeln("TR: ");
+    typeln("TR:");
     typeFloat(tref);
 }
 

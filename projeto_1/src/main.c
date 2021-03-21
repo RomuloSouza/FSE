@@ -45,8 +45,6 @@ int main(int argc, const char * argv[]) {
         read_temperature_i2c(&dev, &tenv);
         printf("Evironment temperature = %f\n", tenv);
 
-        // INIT LCD
-
         printf("Escrevendo no lcd...\n");
         write_LCD(tenv, tref, tin);
 
