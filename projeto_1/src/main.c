@@ -1,17 +1,20 @@
 #include <stdio.h>
-#include <unistd.h>         //Used for UART
-#include <fcntl.h>          //Used for UART
-#include <termios.h>        //Used for UART
-#include <crc16.h>
 #include <string.h>
-#include <modbus.h>
-
 #include <sys/types.h>
+#include <signal.h>
 
-#include <i2c_bme.h>
+#include <modbus.h>
 #include <bme280.h>
-
+#include <i2c_bme.h>
 #include <i2c_lcd.h>
+
+void sig_handler(int signal){
+    if (signal == SIGINT){
+        close_UART();
+        exit(0);
+    }
+}
+
 
 int main(int argc, const char * argv[]) {
     const char INTERN_TEMPERATURE = 0xC1;
@@ -19,29 +22,35 @@ int main(int argc, const char * argv[]) {
 
     float tenv, tref, tin;
 
-    initialize_UART();
-    tin = read_temperature(INTERN_TEMPERATURE);
-    printf("Intern temperature in main = %f\n", tin);
-
-    tref = read_temperature(POTENTIOMETER_TEMPERATURE);
-    printf("Reference temperature in main = %f\n", tref);
-
     struct identifier id;
     struct bme280_dev dev;
 
-    open_i2c_conn(&id);
-    initialize_I2C(&id, &dev);
+    signal(SIGINT, sig_handler);
 
-    read_temperature_i2c(&dev, &tenv);
+    initialize_UART();
 
-    printf("Evironment temperature = %f\n", tenv);
-
-    // INIT LCD
+    setup_i2c_bme(&id, &dev);
+    open_i2c_conn(&id, &dev);
+    initialize_I2C(&dev);
     lcd_init();
 
-    printf("Escrevendo no lcd...\n");
-    write_LCD(tenv, tref, tin);
+    while(1){
+        tin = read_temperature(INTERN_TEMPERATURE);
+        printf("Intern temperature in main = %f\n", tin);
 
+        tref = read_temperature(POTENTIOMETER_TEMPERATURE);
+        printf("Reference temperature in main = %f\n", tref);
+
+
+        read_temperature_i2c(&dev, &tenv);
+        printf("Evironment temperature = %f\n", tenv);
+
+        // INIT LCD
+
+        printf("Escrevendo no lcd...\n");
+        write_LCD(tenv, tref, tin);
+
+    }
 
     close_UART();
 

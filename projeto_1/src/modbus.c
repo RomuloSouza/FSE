@@ -1,6 +1,6 @@
 #include <modbus.h>
 
-#define DELAY 1
+#define DELAY 100000
 
 int _request_temperature(char code);
 float _read_temperature();
@@ -34,21 +34,10 @@ float read_temperature(char code){
     if (status == -1)
         return status;
 
-    sleep(DELAY);
+    usleep(DELAY);
 
     return _read_temperature();
 
-}
-
-float read_ref_temperature(){
-    const char code = 0xC2;
-    int status = _request_temperature(code);
-    if (status == -1)
-        return status;
-
-    sleep(DELAY);
-
-    return _read_temperature();
 }
 
 int _request_temperature(char code){
@@ -85,16 +74,14 @@ float _read_temperature(){
     } else if (rx_length == 0){
         printf("No data available from UART.\n"); //No data waiting
     } else{
-        printf("CRC calculado = %d\n", calcula_CRC(rx_buffer, 7));
+        // printf("CRC calculado = %d\n", calcula_CRC(rx_buffer, 7));
 
         short crc_rec;
         memcpy(&crc_rec, &rx_buffer[7], 2);
-        printf("CRC recebido = %d\n", crc_rec);
+        // printf("CRC recebido = %d\n", crc_rec);
 
         memcpy(&temperature, &rx_buffer[3], 4);
-        printf("Temperature = %f\n", temperature);
-
-        printf("%i Bytes lidos\n", rx_length);
+        // printf("%i Bytes lidos\n", rx_length);
     }
 
     return temperature;

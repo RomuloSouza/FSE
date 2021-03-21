@@ -95,7 +95,15 @@ int8_t read_temperature_i2c(struct bme280_dev *dev, float *temp)
     return rslt;
 }
 
-void open_i2c_conn(struct identifier *id){
+void setup_i2c_bme(struct identifier *id, struct bme280_dev *dev){
+    id->dev_addr = BME280_I2C_ADDR_PRIM;
+    dev->intf = BME280_I2C_INTF;
+    dev->read = _user_i2c_read;
+    dev->write = _user_i2c_write;
+    dev->delay_us = _user_delay_us;
+}
+
+void open_i2c_conn(struct identifier *id, struct bme280_dev *dev){
     if ((id->fd = open("/dev/i2c-1", O_RDWR)) < 0)
     {
         fprintf(stderr, "Failed to open the i2c bus /dev/i2c-1\n");
@@ -109,18 +117,11 @@ void open_i2c_conn(struct identifier *id){
         exit(1);
     }
 
+    dev->intf_ptr = id;
 }
 
-void initialize_I2C(struct identifier *id, struct bme280_dev *dev){
+void initialize_I2C(struct bme280_dev *dev){
     int8_t rslt = BME280_OK;
-
-    id->dev_addr = BME280_I2C_ADDR_PRIM;
-    
-    dev->intf = BME280_I2C_INTF;
-    dev->read = _user_i2c_read;
-    dev->write = _user_i2c_write;
-    dev->delay_us = _user_delay_us;
-    dev->intf_ptr = &id;
 
     rslt = bme280_init(dev);
 
@@ -129,6 +130,7 @@ void initialize_I2C(struct identifier *id, struct bme280_dev *dev){
         fprintf(stderr, "Failed to initialize the device (code %+d).\n", rslt);
         exit(1);
     }
+
 }
 
 // ================================== LOCAL FUNCTIONS ==================================
