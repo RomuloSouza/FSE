@@ -1,5 +1,15 @@
-#ifndef I2C_H
-#define I2C_H
+#ifndef I2C_BME_H
+#define I2C_BME_H
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
 
 #include <bme280.h>
 

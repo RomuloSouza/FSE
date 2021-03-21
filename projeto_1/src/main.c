@@ -11,16 +11,20 @@
 #include <i2c_bme.h>
 #include <bme280.h>
 
+#include <i2c_lcd.h>
+
 int main(int argc, const char * argv[]) {
     const char INTERN_TEMPERATURE = 0xC1;
     const char POTENTIOMETER_TEMPERATURE = 0xC2;
 
-    initialize_UART();
-    float temperature = read_temperature(INTERN_TEMPERATURE);
-    printf("Intern temperature in main = %f\n", temperature);
+    float tenv, tref, tin;
 
-    temperature = read_temperature(POTENTIOMETER_TEMPERATURE);
-    printf("Reference temperature in main = %f\n", temperature);
+    initialize_UART();
+    tin = read_temperature(INTERN_TEMPERATURE);
+    printf("Intern temperature in main = %f\n", tin);
+
+    tref = read_temperature(POTENTIOMETER_TEMPERATURE);
+    printf("Reference temperature in main = %f\n", tref);
 
     struct identifier id;
     struct bme280_dev dev;
@@ -28,10 +32,15 @@ int main(int argc, const char * argv[]) {
     open_i2c_conn(&id);
     initialize_I2C(&id, &dev);
 
-    float environ_temp=0;
-    environ_temp = read_temperature_i2c(&dev, &environ_temp);
+    read_temperature_i2c(&dev, &tenv);
 
-    printf("Evironment temperature = %f\n", environ_temp);
+    printf("Evironment temperature = %f\n", tenv);
+
+    // INIT LCD
+    lcd_init();
+
+    printf("Escrevendo no lcd...\n");
+    write_LCD(tenv, tref, tin);
 
 
     close_UART();
