@@ -5,31 +5,6 @@ int8_t _user_i2c_read(uint8_t reg_addr, uint8_t *data, uint32_t len, void *intf_
 int8_t _user_i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len, void *intf_ptr);
 
 /*!
- * @brief This API used to print the sensor temperature, pressure and humidity data.
- */
-void print_sensor_data(struct bme280_data *comp_data)
-{
-    float temp, press, hum;
-
-#ifdef BME280_FLOAT_ENABLE
-    temp = comp_data->temperature;
-    press = 0.01 * comp_data->pressure;
-    hum = comp_data->humidity;
-#else
-#ifdef BME280_64BIT_ENABLE
-    temp = 0.01f * comp_data->temperature;
-    press = 0.0001f * comp_data->pressure;
-    hum = 1.0f / 1024.0f * comp_data->humidity;
-#else
-    temp = 0.01f * comp_data->temperature;
-    press = 0.01f * comp_data->pressure;
-    hum = 1.0f / 1024.0f * comp_data->humidity;
-#endif
-#endif
-    printf("%0.2lf deg C, %0.2lf hPa, %0.2lf%%\n", temp, press, hum);
-}
-
-/*!
  * @brief This API reads the sensor temperature, pressure and humidity data in forced mode.
  */
 int8_t read_temperature_i2c(struct bme280_dev *dev, float *temp)
@@ -37,33 +12,11 @@ int8_t read_temperature_i2c(struct bme280_dev *dev, float *temp)
     /* Variable to define the result */
     int8_t rslt = BME280_OK;
 
-    /* Variable to define the selecting sensors */
-    uint8_t settings_sel = 0;
-
     /* Variable to store minimum wait time between consecutive measurement in force mode */
     uint32_t req_delay;
 
     /* Structure to get the pressure, temperature and humidity values */
     struct bme280_data comp_data;
-
-    /* Recommended mode of operation: Indoor navigation */
-    dev->settings.osr_h = BME280_OVERSAMPLING_1X;
-    dev->settings.osr_p = BME280_OVERSAMPLING_16X;
-    dev->settings.osr_t = BME280_OVERSAMPLING_2X;
-    dev->settings.filter = BME280_FILTER_COEFF_16;
-
-    settings_sel = BME280_OSR_PRESS_SEL | BME280_OSR_TEMP_SEL | BME280_OSR_HUM_SEL | BME280_FILTER_SEL;
-
-    /* Set the sensor settings */
-    rslt = bme280_set_sensor_settings(settings_sel, dev);
-    if (rslt != BME280_OK)
-    {
-        fprintf(stderr, "Failed to set sensor settings (code %+d).", rslt);
-
-        return rslt;
-    }
-
-    printf("Temperature, Pressure, Humidity\n");
 
     /*Calculate the minimum delay required between consecutive measurement based upon the sensor enabled
      *  and the oversampling configuration. */
@@ -89,8 +42,6 @@ int8_t read_temperature_i2c(struct bme280_dev *dev, float *temp)
     }
 
     *temp = (float)comp_data.temperature;
-
-    print_sensor_data(&comp_data);
 
     return rslt;
 }
@@ -129,6 +80,26 @@ void initialize_I2C(struct bme280_dev *dev){
     {
         fprintf(stderr, "Failed to initialize the device (code %+d).\n", rslt);
         exit(1);
+    }
+
+    // ================== Set sensor initial configuration ==================
+
+    /* Variable to define the selecting sensors */
+    uint8_t settings_sel = 0;
+
+    /* Recommended mode of operation: Indoor navigation */
+    dev->settings.osr_h = BME280_OVERSAMPLING_1X;
+    dev->settings.osr_p = BME280_OVERSAMPLING_16X;
+    dev->settings.osr_t = BME280_OVERSAMPLING_2X;
+    dev->settings.filter = BME280_FILTER_COEFF_16;
+
+    settings_sel = BME280_OSR_PRESS_SEL | BME280_OSR_TEMP_SEL | BME280_OSR_HUM_SEL | BME280_FILTER_SEL;
+
+    /* Set the sensor settings */
+    rslt = bme280_set_sensor_settings(settings_sel, dev);
+    if (rslt != BME280_OK)
+    {
+        fprintf(stderr, "Failed to set sensor settings (code %+d).", rslt);
     }
 
 }

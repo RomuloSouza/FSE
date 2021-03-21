@@ -32,7 +32,7 @@ void close_UART(){
 float read_temperature(char code){
     int status = _request_temperature(code);
     if (status == -1)
-        return status;
+        return (float)status;
 
     usleep(DELAY);
 
@@ -55,13 +55,10 @@ int _request_temperature(char code){
         return -1;
     }
 
-    printf("escrito.\n");
     return 0;
 }
 
-
 float _read_temperature(){
-    // Read up to 255 characters from the port if they are there
     unsigned char rx_buffer[256];
     float temperature = -1;
 
@@ -74,14 +71,9 @@ float _read_temperature(){
     } else if (rx_length == 0){
         printf("No data available from UART.\n"); //No data waiting
     } else{
-        // printf("CRC calculado = %d\n", calcula_CRC(rx_buffer, 7));
-
         short crc_rec;
         memcpy(&crc_rec, &rx_buffer[7], 2);
-        // printf("CRC recebido = %d\n", crc_rec);
-
         memcpy(&temperature, &rx_buffer[3], 4);
-        // printf("%i Bytes lidos\n", rx_length);
     }
 
     return temperature;
