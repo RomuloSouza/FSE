@@ -60,10 +60,10 @@ int main(int argc, const char * argv[]) {
     while(1){
         // Read temperatures
         tr = read_temperature(POTENTIOMETER_TEMPERATURE);
-        printf("Reference temperature in main = %f\n", tr);
+        printf("Reference temperature = %f\n", tr);
 
         ti = read_temperature(INTERN_TEMPERATURE);
-        printf("Intern temperature in main = %f\n", ti);
+        printf("Intern temperature = %f\n", ti);
 
         read_temperature_i2c(&dev, &te);
         printf("Evironment temperature = %f\n", te);
@@ -84,9 +84,9 @@ int main(int argc, const char * argv[]) {
 
         // Write into log file
         printf("Writing into log file...\n");
-        write_to_file(ti, te, tr, intensity);
+        write_to_file(ti, te, tr, control_pid);
 
-        sleep(1);
+        usleep(1500000);
     }
 
     close_UART();

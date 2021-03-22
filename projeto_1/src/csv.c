@@ -19,7 +19,7 @@ void close_file(){
 /*
 Writes a new line into file
 */
-void write_to_file(float ti, float te, float tr, int intensity){
+void write_to_file(float ti, float te, float tr, double intensity){
     time_t rawtime;
     struct tm *info;
     char datetime[80];
@@ -30,6 +30,6 @@ void write_to_file(float ti, float te, float tr, int intensity){
 
     strftime(datetime, 80, "%d-%m-%Y %H:%M:%S", info);
 
-    fprintf(pfile, "%s, %f, %f, %f, %d\n", datetime, ti, te, tr, intensity);
+    fprintf(pfile, "%s, %f, %f, %f, %lf\n", datetime, ti, te, tr, intensity);
 
 }
