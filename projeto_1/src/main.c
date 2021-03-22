@@ -3,28 +3,30 @@
 #include <sys/types.h>
 #include <signal.h>
 
+#include <csv.h>
+#include <pid.h>
+#include <gpio.h>
 #include <modbus.h>
 #include <bme280.h>
 #include <i2c_bme.h>
 #include <i2c_lcd.h>
-#include <pid.h>
-#include <gpio.h>
 
 void sig_handler(int signal){
     if (signal == SIGINT){
+        close_file();
         close_UART();
         turn_off_gpio();
         sleep(1);
+
         exit(0);
     }
 }
-
 
 int main(int argc, const char * argv[]) {
     const char INTERN_TEMPERATURE = 0xC1;
     const char POTENTIOMETER_TEMPERATURE = 0xC2;
 
-    float tenv, tref, tin;
+    float ti, te, tr;
 
     double kp = 5.0, ki = 1.0, kd = 5.0;
     double control_pid=0;
@@ -49,30 +51,40 @@ int main(int argc, const char * argv[]) {
     // LCD configuration
     lcd_init();
 
-
     // PID configuration
     pid_configura_constantes(kp, ki, kd);
 
+    // Create CSV file
+    create_file();
+
     while(1){
-        tref = read_temperature(POTENTIOMETER_TEMPERATURE);
-        printf("Reference temperature in main = %f\n", tref);
+        // Read temperatures
+        tr = read_temperature(POTENTIOMETER_TEMPERATURE);
+        printf("Reference temperature in main = %f\n", tr);
 
-        tin = read_temperature(INTERN_TEMPERATURE);
-        printf("Intern temperature in main = %f\n", tin);
+        ti = read_temperature(INTERN_TEMPERATURE);
+        printf("Intern temperature in main = %f\n", ti);
 
-        read_temperature_i2c(&dev, &tenv);
-        printf("Evironment temperature = %f\n", tenv);
+        read_temperature_i2c(&dev, &te);
+        printf("Evironment temperature = %f\n", te);
 
-        pid_atualiza_referencia(tref);
-        control_pid = pid_controle((double)tin);
+        // Calulate PID
+        pid_atualiza_referencia(tr);
+        control_pid = pid_controle((double)ti);
         printf("Control PID = %lf\n", control_pid);
 
+        // Turn ON/OFF the FAN/Resistor
         intensity = control_pid;
         printf("Intensity = %d\n", intensity);
         handle_temperature(intensity);
 
-        printf("Escrevendo no lcd...\n");
-        write_LCD(tenv, tref, tin);
+        // Write in LCD
+        printf("Writing in LCD...\n");
+        write_LCD(te, tr, ti);
+
+        // Write into log file
+        printf("Writing into log file...\n");
+        write_to_file(ti, te, tr, intensity);
 
         sleep(1);
     }
