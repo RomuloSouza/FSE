@@ -26,6 +26,8 @@ int main(int argc, const char * argv[]) {
     const char INTERN_TEMPERATURE = 0xC1;
     const char POTENTIOMETER_TEMPERATURE = 0xC2;
 
+    int should_write = 1; // assert the data will be written each 2s
+
     float ti, te, tr;
 
     double kp = 5.0, ki = 1.0, kd = 5.0;
@@ -83,10 +85,15 @@ int main(int argc, const char * argv[]) {
         write_LCD(te, tr, ti);
 
         // Write into log file
-        printf("Writing into log file...\n");
-        write_to_file(ti, te, tr, control_pid);
+        if(should_write){
+            printf("Writing into log file...\n");
+            write_to_file(ti, te, tr, control_pid);
+            should_write--;
+        } else {
+            should_write++;
+        }
 
-        usleep(1500000);
+        usleep(800000);
     }
 
     close_UART();
