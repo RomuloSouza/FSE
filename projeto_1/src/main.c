@@ -96,7 +96,5 @@ int main(int argc, const char * argv[]) {
         usleep(800000);
     }
 
-    close_UART();
-
    return 0;
 }

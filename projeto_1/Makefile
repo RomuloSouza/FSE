@@ -12,7 +12,6 @@ SRC = $(wildcard $(SRC_DIR)/*.c)
 OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 BIN = $(BIN_DIR)/bin
 
-
 all: $(BIN)
 
 $(BIN): $(OBJ)
@@ -21,7 +20,6 @@ $(BIN): $(OBJ)
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $< -o $@
-
 
 clean:
 	@rm -rf $(OBJ_DIR)/*  $(BIN_DIR)/*
