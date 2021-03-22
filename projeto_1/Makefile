@@ -1,22 +1,30 @@
 CC = gcc
 LDFLAGS = -lwiringPi
-BLDDIR = .
-INCDIR = $(BLDDIR)/inc
-SRCDIR = $(BLDDIR)/src
-OBJDIR = $(BLDDIR)/obj
-CFLAGS = -c -Wall -I$(INCDIR)
-SRC = $(wildcard $(SRCDIR)/*.c)
-OBJ = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC))
-EXE = bin/bin
+CFLAGS = -c -Wall -I $(INC_DIR) -I -pedantic
 
-all: clean $(EXE) 
-    
-$(EXE): $(OBJ) 
-	$(CC) $(LDFLAGS) $(OBJDIR)/*.o -o $@ 
+BUILD_DIR = .
+INC_DIR  = $(BUILD_DIR)/inc
+SRC_DIR  = $(BUILD_DIR)/src
+OBJ_DIR  = $(BUILD_DIR)/obj
+BIN_DIR  = $(BUILD_DIR)/bin
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.c
+SRC = $(wildcard $(SRC_DIR)/*.c)
+OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
+BIN = $(BIN_DIR)/bin
+
+
+all: $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LDFLAGS) $(OBJ_DIR)/*.o -o $@
+
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $< -o $@
 
+
 clean:
-	-rm -f $(OBJDIR)/*.o $(EXE)
+	@rm -rf $(OBJ_DIR)/*  $(BIN_DIR)/*
+
+run:
+	@$(BIN)
