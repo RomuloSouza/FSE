@@ -4,13 +4,12 @@
 #define FAN_PIN 5
 
 void setup_gpio(){
+    wiringPiSetup();		    /* initialize wiringPi setup */
+    pinMode(RES_PIN, OUTPUT);	/* set GPIO as output */
+    softPwmCreate(RES_PIN, 1, 100); /* set PWM channel along with range*/
 
-	wiringPiSetup();		    /* initialize wiringPi setup */
-	pinMode(RES_PIN, OUTPUT);	/* set GPIO as output */
-	softPwmCreate(RES_PIN, 1, 100); /* set PWM channel along with range*/
-
-	pinMode(FAN_PIN, OUTPUT);
-	softPwmCreate(FAN_PIN, 1, 100);
+    pinMode(FAN_PIN, OUTPUT);
+    softPwmCreate(FAN_PIN, 1, 100);
 }
 
 void handle_temperature(int intensity){
