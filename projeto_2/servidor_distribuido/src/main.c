@@ -8,10 +8,18 @@
 #include <bme280.h>
 #include <i2c_bme.h>
 
+#include <server.h>
+#include <pthread.h>
+
+pthread_t server_thread;
+
 void sig_handler(int signal){
     if (signal == SIGINT){
         // close_file();
-        // turn_off_gpio();
+
+        printf("Finalizando as threads...\n");
+        stop_server();
+        pthread_cancel(server_thread);
         sleep(1);
 
         exit(0);
@@ -26,7 +34,10 @@ int main(int argc, const char * argv[]) {
     struct identifier id;
     struct bme280_dev dev;
 
-    // signal(SIGINT, sig_handler);
+    // Start socket
+    pthread_create(&server_thread, NULL, (void*)create_server, NULL);
+
+    signal(SIGINT, sig_handler);
 
     // BME configuration
     setup_i2c_bme(&id, &dev);
@@ -44,7 +55,7 @@ int main(int argc, const char * argv[]) {
         printf("Evironment temperature = %f\n", te);
         printf("Humidity = %f\n", humidity);
 
-        toggle_switch();
+        toggle_switch(0);
 
         // Write into log file
         // if(should_write){
@@ -54,8 +65,7 @@ int main(int argc, const char * argv[]) {
         //     should_write++;
         // }
 
-        usleep(800000);
-        break;
+        sleep(2);
     }
 
    return 0;

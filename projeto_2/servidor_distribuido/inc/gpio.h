@@ -6,7 +6,6 @@
 #include <softPwm.h>
 
 void setup_gpio();
-void turn_off_gpio();
-void toggle_switch();
+void toggle_switch(int pin);
 
 #endif /* GPIO_H_ */
