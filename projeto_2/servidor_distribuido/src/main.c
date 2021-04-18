@@ -55,7 +55,7 @@ int main(int argc, const char * argv[]) {
         printf("Evironment temperature = %f\n", te);
         printf("Humidity = %f\n", humidity);
 
-        toggle_switch(0);
+        // toggle_switch(0);
 
         // Write into log file
         // if(should_write){

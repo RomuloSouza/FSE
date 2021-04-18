@@ -1,40 +1,33 @@
 #include <gpio.h>
-
-#define LAMP_1 0                      // KITCHEN
-#define LAMP_2 1                      // LIVING ROOM
-#define LAMP_3 2                      // ROOM 1
-#define LAMP_4 3                      // ROOM 2
-#define AIR_1 23                      // ROOM 1
-#define AIR_2 24                      // ROOM 2
-#define SENSOR_PRES_1 6               // LIVING ROOM
-#define SENSOR_PRES_2 25              // KITCHEN
-#define SENSOR_DOOR_KITCHEN 21        // KITCHEN'S DOOR
-#define SENSOR_WINDOW_KITCHEN 22      // KITCHEN'S WINDOW
-#define SENSOR_DOOR_LIVING_ROOM 26    // LIVING ROOM'S DOOR
-#define SENSOR_WINDOW_LIVING_ROOM 27  // LIVING ROOM'S WINDOW
-#define SENSOR_WINDOW_ROOM_1 28       // ROOM_1'S WINDOW
-#define SENSOR_WINDOW_ROOM_2 29       // ROOM_2'S WINDOW
+#include <serializer.h>
 
 void _update_sensor_press_1();
-
-typedef struct States {
-    int lamp_1;
-    int lamp_2;
-    int lamp_3;
-    int lamp_4;
-    int air_1;
-    int air_2;
-    int sensor_pres_1;
-    int sensor_pres_2;
-    int sensor_door_kitchen;
-    int sensor_window_kitchen;
-    int sensor_door_living_room;
-    int sensor_window_living_room;
-    int sensor_window_room_1;
-    int sensor_window_room_2;
-} States;
+void _initialize_states();
 
 States states;
+
+void serialize_states(char *buff){
+    int size = 0;
+
+    serialize(buff, &size, "lamp_1:", states.lamp_1, "%d");
+    serialize(buff, &size, "lamp_2:", states.lamp_2, "%d");
+    serialize(buff, &size, "lamp_3:", states.lamp_3, "%d");
+    serialize(buff, &size, "lamp_4:", states.lamp_4, "%d");
+    serialize(buff, &size, "air_1:", states.air_1, "%d");
+    serialize(buff, &size, "air_2:", states.air_2, "%d");
+    serialize(buff, &size, "sensor_pres_1:", states.sensor_pres_1, "%d");
+    serialize(buff, &size, "sensor_pres_2:", states.sensor_pres_2, "%d");
+    serialize(buff, &size, "sensor_door_kitchen:", states.sensor_door_kitchen, "%d");
+    serialize(buff, &size, "sensor_window_kitchen:", states.sensor_window_kitchen, "%d");
+    serialize(buff, &size, "sensor_door_living_room:", states.sensor_door_living_room, "%d");
+    serialize(buff, &size, "sensor_window_living_room:", states.sensor_window_living_room, "%d");
+    serialize(buff, &size, "sensor_window_room_1:", states.sensor_window_room_1, "%d");
+    serialize(buff, &size, "sensor_window_room_2:", states.sensor_window_room_2, "%d");
+
+    buff[size] = '\0';
+    printf("size value = %d\n", size);
+    printf("buff len = %d\n", strlen(buff));
+}
 
 void setup_gpio(){
     wiringPiSetup();
@@ -56,6 +49,14 @@ void setup_gpio(){
     pinMode(SENSOR_WINDOW_LIVING_ROOM, OUTPUT);
     pinMode(SENSOR_WINDOW_ROOM_1, OUTPUT);
     pinMode(SENSOR_WINDOW_ROOM_2, OUTPUT);
+
+    _initialize_states();
+
+    printf("Tentando serializar os estados...\n");
+    char buff[1024];
+    serialize_states(buff);
+    printf("estado serializado = %s\n", buff);
+
 }
 
 void setup_interrupts(){
@@ -75,11 +76,13 @@ void toggle_switch(int pin){
 
 // ====================================== LOCAL FUNCTIONS ======================================
 
-void _initializa_states(){
+void _initialize_states(){
     states.lamp_1 = digitalRead(LAMP_1);
     states.lamp_2 = digitalRead(LAMP_2);
     states.lamp_3 = digitalRead(LAMP_3);
     states.lamp_4 = digitalRead(LAMP_4);
+    states.air_1 = digitalRead(AIR_1);
+    states.air_2 = digitalRead(AIR_2);
     states.sensor_door_kitchen = digitalRead(SENSOR_DOOR_KITCHEN);
     states.sensor_door_living_room = digitalRead(SENSOR_DOOR_LIVING_ROOM);
     states.sensor_pres_1 = digitalRead(SENSOR_PRES_1);
