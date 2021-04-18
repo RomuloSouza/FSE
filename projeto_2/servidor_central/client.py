@@ -23,6 +23,6 @@ if s is None:
     sys.exit(1)
 with s:
     s.sendall(b'Hello, world')
-    data = s.recv(1024)
+    data = s.recv(512)
 
 print('Received', repr(data))

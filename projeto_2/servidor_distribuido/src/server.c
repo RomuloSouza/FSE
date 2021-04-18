@@ -4,19 +4,18 @@ int servidorSocket;
 
 
 void TrataClienteTCP(int socketCliente) {
-	char buffer[16];
+	char buffer[512];
 	int tamanhoRecebido;
 
-	if((tamanhoRecebido = recv(socketCliente, buffer, 16, 0)) < 0)
+	if((tamanhoRecebido = recv(socketCliente, buffer, 512, 0)) < 0)
 		printf("Erro no recv()\n");
 
-	while (tamanhoRecebido > 0) {
-		if(send(socketCliente, buffer, tamanhoRecebido, 0) != tamanhoRecebido)
-			printf("Erro no envio - send()\n");
-		
-		if((tamanhoRecebido = recv(socketCliente, buffer, 16, 0)) < 0)
-			printf("Erro no recv()\n");
-	}
+    printf("o que eu recebi no buffer: %s\n", buffer);
+
+    char res[512] = {"resposta do socket.\n"};
+    if(send(socketCliente, res, sizeof(res), 0) != sizeof(res))
+        printf("Erro no envio - send()\n");
+
 }
 
 

@@ -24,7 +24,6 @@ void serialize_states(char *buff){
     serialize(buff, &size, "sensor_window_room_1:", states.sensor_window_room_1, "%d");
     serialize(buff, &size, "sensor_window_room_2:", states.sensor_window_room_2, "%d");
 
-    buff[size] = '\0';
     printf("size value = %d\n", size);
     printf("buff len = %d\n", strlen(buff));
 }
