@@ -7,7 +7,7 @@ int8_t _user_i2c_write(uint8_t reg_addr, const uint8_t *data, uint32_t len, void
 /*!
  * @brief This API reads the sensor temperature, pressure and humidity data in forced mode.
  */
-int8_t read_temperature_i2c(struct bme280_dev *dev, float *temp)
+int8_t read_temperature_i2c(struct bme280_dev *dev, float *temp, float *hum)
 {
     /* Variable to define the result */
     int8_t rslt = BME280_OK;
@@ -41,6 +41,7 @@ int8_t read_temperature_i2c(struct bme280_dev *dev, float *temp)
         return rslt;
     }
 
+    *hum = (float)comp_data.humidity;
     *temp = (float)comp_data.temperature;
 
     return rslt;

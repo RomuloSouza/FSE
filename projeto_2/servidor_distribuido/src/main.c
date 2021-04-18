@@ -4,7 +4,7 @@
 #include <signal.h>
 
 #include <csv.h>
-// #include <gpio.h>
+#include <gpio.h>
 #include <bme280.h>
 #include <i2c_bme.h>
 
@@ -21,7 +21,7 @@ void sig_handler(int signal){
 int main(int argc, const char * argv[]) {
     // int should_write = 1; // assert the data will be written each 2s
 
-    float te;
+    float te, humidity;
 
     struct identifier id;
     struct bme280_dev dev;
@@ -34,14 +34,17 @@ int main(int argc, const char * argv[]) {
     initialize_I2C(&dev);
 
     // GPIO configuration
-    // setup_gpio();
+    setup_gpio();
 
     // Create CSV file
     // create_file();
 
     while(1){
-        read_temperature_i2c(&dev, &te);
+        read_temperature_i2c(&dev, &te, &humidity);
         printf("Evironment temperature = %f\n", te);
+        printf("Humidity = %f\n", humidity);
+
+        toggle_switch();
 
         // Write into log file
         // if(should_write){
@@ -52,6 +55,7 @@ int main(int argc, const char * argv[]) {
         // }
 
         usleep(800000);
+        break;
     }
 
    return 0;
