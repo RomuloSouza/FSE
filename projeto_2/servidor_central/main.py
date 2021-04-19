@@ -25,7 +25,7 @@ class Server:
         server = await asyncio.start_server(self.connection_handler, HOST_CENTRAL, PORT_CENTRAL)
 
         host, port, *_ = server.sockets[0].getsockname()
-        self.logger.info('Waiting for connections on %s:%s ...', host, port)
+        print('Waiting for connections on %s:%s ...', host, port)
 
         async with server:
             await server.serve_forever()
