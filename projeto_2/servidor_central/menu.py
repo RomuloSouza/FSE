@@ -54,8 +54,6 @@ class Menu:
 
         self.switches = self.get_switches()
         self.update_switches()
-        self.update_switches()
-        self.update_switches()
 
         self.sensors_structure = {
             'sensor_pres_1': {
@@ -92,6 +90,7 @@ class Menu:
             },
         }
         self.sensors = self.get_sensors()
+        self.update_sensors()
 
         @self.kb.add('c-c')
         def exit_(event):
@@ -111,10 +110,12 @@ class Menu:
                 switch = {
                     'lamp_1': 0
                 }
+                self.sensors_structure['sensor_pres_1']['value'] = 0
             else:
                 switch = {
                     'lamp_1': 1
                 }
+                self.sensors_structure['sensor_pres_1']['value'] = 1
             await self.queue.put(switch)
 
     def get_switches(self):
@@ -138,15 +139,23 @@ class Menu:
             self.switches.values[idx][1] = get_text_colored(key)
 
     def get_sensors(self):
-        def get_text_colored(name, value):
-            color = 'green' if value else 'red'
-            return HTML(f'<{color}>{name}</{color}>')
-
         sensors = [
-            Window(FormattedTextControl(get_text_colored(**info))) for info in self.sensors_structure.values()
+            Window(FormattedTextControl(info['name'])) for key, info in self.sensors_structure.items()
         ]
 
         return sensors
+
+    def update_sensors(self):
+        def get_text_colored(key):
+            value = self.sensors_structure[key]['value']
+            name = self.sensors_structure[key]['name']
+
+            color = 'green' if value else 'red'
+            return HTML(f'<{color}>{name}</{color}>')
+
+        for idx, (key, _) in enumerate(self.sensors_structure.items()):
+            self.sensors[idx].content.text = get_text_colored(key)
+
 
     async def update(self):
         while self.is_running:
@@ -156,6 +165,7 @@ class Menu:
                 self.switches_structure[key]['value'] = value
 
             self.update_switches()
+            self.update_sensors()
 
             get_app().invalidate()
     
