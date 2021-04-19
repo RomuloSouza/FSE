@@ -4,14 +4,37 @@ import asyncio
 
 from constants import (
     HOST_CENTRAL,
-    PORT_CENTRAL
+    PORT_CENTRAL,
+    HOST_DISTRIBUTED,
+    PORT_DISTRIBUTED,
+    MAX_QUEUE_SIZE
 )
 from menu import Menu
 
 class Server:
+    async def commands_handler(self, writer, commands_queue):
+        while True:
+            commands = await commands_queue.get()
+
+            if commands is None:
+                break
+
+            for command in commands:
+                # writer.write(command)
+                print(command)
+
+            # await writer.drain()
+
     async def connection_handler(self, reader, writer):
-        menu = Menu()
-        tasks = asyncio.gather(menu.start())
+        # Open client side connection
+        _, push_writer = await asyncio.open_connection(HOST_DISTRIBUTED, PORT_DISTRIBUTED)
+
+        commands_queue = asyncio.Queue(MAX_QUEUE_SIZE)
+        menu = Menu(commands_queue)
+        tasks = asyncio.gather(
+            menu.start(),
+            self.commands_handler(push_writer, commands_queue)
+        )
         try:
             await tasks
         except Exception as err:

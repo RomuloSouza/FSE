@@ -17,11 +17,12 @@ class Menu:
     class CheckboxListNoScroll(CheckboxList):
         show_scrollbar = False
 
-    def __init__(self):
-        self.msg = 'teste'
+    def __init__(self, commands_queue):
         self.kb = KeyBindings()
         self.is_running = True
-        self.queue = asyncio.Queue(MAX_QUEUE_SIZE)
+        self.commands_queue = commands_queue
+        self.states_queue = asyncio.Queue(MAX_QUEUE_SIZE)
+
         self.temperature = 0
         self.humidity = 0
         self.environment = self.get_environment()
@@ -98,7 +99,12 @@ class Menu:
             """
             Pressing Ctrl-C will exit the user interface.
             """
-            event.app.exit()
+            self.stop()
+
+        @self.kb.add('s')
+        async def send(event):
+            selected_switches = self.switches.current_values
+            await self.commands_queue.put(selected_switches)
 
         @self.kb.add('d')
         async def vish(event):
@@ -116,7 +122,7 @@ class Menu:
                 self.sensors_structure['sensor_pres_1']['value'] = 1
 
             self.temperature += 1
-            await self.queue.put(switch)
+            await self.states_queue.put(switch)
 
     def get_environment(self):
         environ_html = HTML(
@@ -177,7 +183,7 @@ class Menu:
 
     async def update(self):
         while self.is_running:
-            switches = await self.queue.get()
+            switches = await self.states_queue.get()
 
             for key, value in switches.items():
                 self.switches_structure[key]['value'] = value
@@ -187,6 +193,14 @@ class Menu:
             self.update_sensors()
 
             get_app().invalidate()
+
+    def stop(self):
+        self.is_running = False
+        asyncio.create_task(self.commands_queue.put(None))
+
+        app = get_app()
+        if app.is_running:
+            app.exit()
 
     async def start(self):
         root_aux = VSplit([
