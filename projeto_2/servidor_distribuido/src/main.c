@@ -27,15 +27,10 @@ void sig_handler(int signal){
 }
 
 int main(int argc, const char * argv[]) {
-    // int should_write = 1; // assert the data will be written each 2s
-
     float te, humidity;
 
     struct identifier id;
     struct bme280_dev dev;
-
-    // Start socket
-    pthread_create(&server_thread, NULL, (void*)create_server, NULL);
 
     signal(SIGINT, sig_handler);
 
@@ -45,7 +40,10 @@ int main(int argc, const char * argv[]) {
     initialize_I2C(&dev);
 
     // GPIO configuration
-    setup_gpio();
+    setup_gpio(&states);
+
+    // Start socket
+    pthread_create(&server_thread, NULL, (void*)create_server, NULL);
 
     // Create CSV file
     // create_file();
@@ -56,14 +54,6 @@ int main(int argc, const char * argv[]) {
         printf("Humidity = %f\n", humidity);
 
         // toggle_switch(0);
-
-        // Write into log file
-        // if(should_write){
-        //     printf("Writing into log file...\n");
-        //     should_write--;
-        // } else {
-        //     should_write++;
-        // }
 
         sleep(2);
     }

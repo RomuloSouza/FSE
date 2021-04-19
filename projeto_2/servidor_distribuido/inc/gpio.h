@@ -37,7 +37,10 @@ typedef struct States {
     int sensor_window_room_2;
 } States;
 
+extern States states;
+
 void setup_gpio();
+int serialize_states(char *buff);
 void toggle_switch(int pin);
 
 #endif /* GPIO_H_ */

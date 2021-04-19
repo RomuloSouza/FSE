@@ -1,23 +1,51 @@
 #include <server.h>
+#include <gpio.h>
 
 int servidorSocket;
 
 
 void TrataClienteTCP(int socketCliente) {
-	char buffer[512];
-	int tamanhoRecebido;
+	char buffer[BUFFER_SIZE];
+	int received_length;
 
-	if((tamanhoRecebido = recv(socketCliente, buffer, 512, 0)) < 0)
-		printf("Erro no recv()\n");
+    /*
+    Characters and responsabilities
+
+    E -> ask for enviroment temperature and humidity
+    I -> ask for initial state of the system
+    S -> ask for state of switches (lamps and airs)
+    */
+
+	if((received_length = recv(socketCliente, buffer, BUFFER_SIZE, 0)) < 0){
+		printf("Error in recv()\n");
+        return;
+    }
 
     printf("o que eu recebi no buffer: %s\n", buffer);
 
-    char res[512] = {"resposta do socket.\n"};
-    if(send(socketCliente, res, sizeof(res), 0) != sizeof(res))
+    switch(buffer[0]){
+        case 'E':
+            printf("Showing temperature vrau\n");
+            break;
+        case 'I':
+            printf("Showing initial state vrau\n");
+            break;
+        case 'S':
+            printf("Showing state of switches vrau\n");
+            break;
+        default:
+            printf("Error when mapping buffer to responsabilty\n");
+            return;
+    }
+
+    char response[BUFFER_SIZE];
+    int size = serialize_states(response);
+    printf("size returned = %d\n", size);
+    printf("sizeof(response) = %d\n", sizeof(response));
+    if(send(socketCliente, response, sizeof(response), 0) != sizeof(response))
         printf("Erro no envio - send()\n");
 
 }
-
 
 void create_server(){
 	int socketCliente;

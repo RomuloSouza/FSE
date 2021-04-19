@@ -1,12 +1,13 @@
 #include <gpio.h>
 #include <serializer.h>
 
+// Variable shared between modules
+States states;
+
 void _update_sensor_press_1();
 void _initialize_states();
 
-States states;
-
-void serialize_states(char *buff){
+int serialize_states(char *buff){
     int size = 0;
 
     serialize(buff, &size, "lamp_1:", states.lamp_1, "%d");
@@ -26,6 +27,8 @@ void serialize_states(char *buff){
 
     printf("size value = %d\n", size);
     printf("buff len = %d\n", strlen(buff));
+
+    return size;
 }
 
 void setup_gpio(){

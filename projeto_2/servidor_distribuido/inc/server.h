@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #define SERVER_PORT 10109
+#define BUFFER_SIZE 512
 
 void create_server();
 void stop_server();
