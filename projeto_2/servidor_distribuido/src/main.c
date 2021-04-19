@@ -9,6 +9,7 @@
 #include <i2c_bme.h>
 
 #include <server.h>
+#include <client.h>
 #include <pthread.h>
 
 pthread_t server_thread;
@@ -20,6 +21,7 @@ void sig_handler(int signal){
         printf("Finalizando as threads...\n");
         stop_server();
         pthread_cancel(server_thread);
+        close_socket();
         sleep(1);
 
         exit(0);
@@ -42,8 +44,13 @@ int main(int argc, const char * argv[]) {
     // GPIO configuration
     setup_gpio(&states);
 
-    // Start socket
+    // Start server socket
     pthread_create(&server_thread, NULL, (void*)create_server, NULL);
+
+    // Start client socket
+    open_socket();
+    char msg[] = {"minha primeira msg de teste\n"};
+    send_message(msg);
 
     // Create CSV file
     // create_file();

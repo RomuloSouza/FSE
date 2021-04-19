@@ -5,7 +5,7 @@ int servidorSocket;
 
 
 void TrataClienteTCP(int socketCliente) {
-	char buffer[BUFFER_SIZE];
+	char buffer[MAX_BUFFER_SIZE];
 	int received_length;
 
     /*
@@ -16,7 +16,7 @@ void TrataClienteTCP(int socketCliente) {
     S -> ask for state of switches (lamps and airs)
     */
 
-	if((received_length = recv(socketCliente, buffer, BUFFER_SIZE, 0)) < 0){
+	if((received_length = recv(socketCliente, buffer, MAX_BUFFER_SIZE-1, 0)) < 0){
 		printf("Error in recv()\n");
         return;
     }
@@ -38,7 +38,7 @@ void TrataClienteTCP(int socketCliente) {
             return;
     }
 
-    char response[BUFFER_SIZE];
+    char response[MAX_BUFFER_SIZE];
     int size = serialize_states(response);
     printf("size returned = %d\n", size);
     printf("sizeof(response) = %d\n", sizeof(response));
