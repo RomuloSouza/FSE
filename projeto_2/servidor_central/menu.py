@@ -12,6 +12,7 @@ from prompt_toolkit.formatted_text import HTML
 
 from constants import MAX_QUEUE_SIZE
 
+
 class Menu:
     class CheckboxListNoScroll(CheckboxList):
         show_scrollbar = False
@@ -21,10 +22,10 @@ class Menu:
         self.kb = KeyBindings()
         self.is_running = True
         self.queue = asyncio.Queue(MAX_QUEUE_SIZE)
-        self.environment = {
-            'temperature': 0,
-            'humidity': 0
-        }
+        self.temperature = 0
+        self.humidity = 0
+        self.environment = self.get_environment()
+
         self.switches_structure = {
             'lamp_1': {
                 'name': 'Lâmpada 01 (Cozinha)',
@@ -96,9 +97,6 @@ class Menu:
         def exit_(event):
             """
             Pressing Ctrl-C will exit the user interface.
-
-            Setting a return value means: quit the event loop that drives the user
-            interface and return this value from the `Application.run()` call.
             """
             event.app.exit()
 
@@ -116,11 +114,31 @@ class Menu:
                     'lamp_1': 1
                 }
                 self.sensors_structure['sensor_pres_1']['value'] = 1
+
+            self.temperature += 1
             await self.queue.put(switch)
+
+    def get_environment(self):
+        environ_html = HTML(
+            f"<foo>Temperature:</foo> {self.temperature:0.2f}\n"
+            f"<foo>Humidity:</foo> {self.humidity:0.2f}\n"
+        )
+        environ = Window(content=FormattedTextControl(environ_html))
+
+        return environ
+
+    def update_environment(self):
+        environ_html = HTML(
+            f"<foo>Temperature:</foo> {self.temperature:0.2f}\n"
+            f"<foo>Humidity:</foo> {self.humidity:0.2f}\n"
+        )
+
+        self.environment.content.text = environ_html
 
     def get_switches(self):
         switches_list = [
-            [key, info['name']] for key, info in self.switches_structure.items()
+            [key, info['name']]
+            for key, info in self.switches_structure.items()
         ]
 
         switches = self.CheckboxListNoScroll(switches_list)
@@ -140,7 +158,8 @@ class Menu:
 
     def get_sensors(self):
         sensors = [
-            Window(FormattedTextControl(info['name'])) for key, info in self.sensors_structure.items()
+            Window(FormattedTextControl(info['name']))
+            for key, info in self.sensors_structure.items()
         ]
 
         return sensors
@@ -156,7 +175,6 @@ class Menu:
         for idx, (key, _) in enumerate(self.sensors_structure.items()):
             self.sensors[idx].content.text = get_text_colored(key)
 
-
     async def update(self):
         while self.is_running:
             switches = await self.queue.get()
@@ -164,11 +182,12 @@ class Menu:
             for key, value in switches.items():
                 self.switches_structure[key]['value'] = value
 
+            self.update_environment()
             self.update_switches()
             self.update_sensors()
 
             get_app().invalidate()
-    
+
     async def start(self):
         root_aux = VSplit([
             Frame(
@@ -180,15 +199,13 @@ class Menu:
                     Label(HTML("\n<b>Sensors:</b>"), width=20),
                     HSplit(self.sensors),
                 ], padding=1)
-            ), 
-            # Frame(
-            #     title="Environment",
-            #     body=HSplit([
-            #         VSplit([
-            #             Label(HTML("\n<b>Temperature: </b>"), width=10),
-            #         ])
-            #     ], padding=1)
-            # )
+            ),
+            Frame(
+                title="Environment",
+                body=HSplit([
+                    VSplit([self.environment])
+                ], padding=1),
+            )
         ], width=50)
 
         layout = Layout(root_aux)
