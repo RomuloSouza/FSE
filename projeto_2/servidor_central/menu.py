@@ -201,15 +201,12 @@ class Menu:
     def stop(self):
         self.is_running = False
         asyncio.create_task(self.commands_queue.put(None))
+        asyncio.create_task(self.states_queue.put(None))
 
         app = get_app()
         if app.is_running:
-            print('exiting stop:')
             app.exit()
         
-        print('finished stop:')
-
-
     async def start(self):
         root_aux = VSplit([
             Frame(

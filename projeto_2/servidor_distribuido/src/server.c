@@ -38,22 +38,28 @@ void TrataClienteTCP() {
 	case 'T':
 		switch (buffer[1]){
 		case '1':
-			printf("Toogle 1\n");
+			printf("Toogle lamp_1\n");
+			toggle_switch(LAMP_1);
 			break;
 		case '2':
-			printf("Toogle 2\n");
+			printf("Toogle lamp_2\n");
+			toggle_switch(LAMP_2);
 			break;
 		case '3':
-			printf("Toogle 3\n");
+			printf("Toogle lamp_3\n");
+			toggle_switch(LAMP_3);
 			break;
 		case '4':
-			printf("Toogle 4\n");
+			printf("Toogle lamp_4\n");
+			toggle_switch(LAMP_4);
 			break;
 		case '5':
-			printf("Toogle 5\n");
+			printf("Toogle air_1\n");
+			toggle_switch(AIR_1);
 			break;
 		case '6':
-			printf("Toogle 6\n");
+			printf("Toogle air_2\n");
+			toggle_switch(AIR_2);
 			break;
 
 		default:

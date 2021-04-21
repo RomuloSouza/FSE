@@ -67,7 +67,7 @@ class Server:
         try:
             await tasks
         except Exception as err:
-            print('Something bad happened: ', err)
+            print('Closed the menu', err)
 
         try:
             for task in asyncio.Task.all_tasks():

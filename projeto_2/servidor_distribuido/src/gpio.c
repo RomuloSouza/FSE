@@ -17,6 +17,8 @@ void _update_sensor_window_room_1();
 void _update_sensor_window_room_2();
 
 void _initialize_states();
+void _update_state(int pin);
+int _change_state(int state);
 
 int serialize_states(char *buff){
     int size = 0;
@@ -79,6 +81,7 @@ void toggle_switch(int pin){
     else
         digitalWrite(pin, HIGH);
 
+    _update_state(pin);
 }
 
 
@@ -99,6 +102,32 @@ void _initialize_states(){
     states.sensor_window_living_room = digitalRead(SENSOR_WINDOW_LIVING_ROOM);
     states.sensor_window_room_1 = digitalRead(SENSOR_WINDOW_ROOM_1);
     states.sensor_window_room_2 = digitalRead(SENSOR_WINDOW_ROOM_2);
+}
+
+void _update_state(int pin){
+    switch (pin) {
+    case LAMP_1:
+        states.lamp_1 = _change_state(states.lamp_1);
+        break;
+    case LAMP_2:
+        states.lamp_2 = _change_state(states.lamp_2);
+        break;
+    case LAMP_3:
+        states.lamp_3 = _change_state(states.lamp_3);
+        break;
+    case LAMP_4:
+        states.lamp_4 = _change_state(states.lamp_4);
+        break;
+    case AIR_1:
+        states.air_1 = _change_state(states.air_1);
+        break;
+    case AIR_2:
+        states.air_2 = _change_state(states.air_2);
+        break;
+
+    default:
+        break;
+    }
 }
 
 int _change_state(int state){
