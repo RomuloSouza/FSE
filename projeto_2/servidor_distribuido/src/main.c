@@ -40,7 +40,7 @@ void sig_stop(int signal){
 
         stop_server();
         close_client_socket();
-        usleep(500000)
+        usleep(500000);
 
         exit(0);
     }
