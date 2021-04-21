@@ -1,6 +1,5 @@
 import asyncio
 
-from client import send_message
 from constants import (
     HOST_CENTRAL,
     PORT_CENTRAL,
@@ -8,6 +7,8 @@ from constants import (
     MAX_BUFFER_SIZE
 )
 from menu import Menu
+from csv_writer import CSV
+from client import send_message
 
 
 class Server:
@@ -15,7 +16,7 @@ class Server:
         print('Requesting initial state...')
         await send_message('INITIAL\0')
 
-    async def commands_handler(self, commands_queue, states_queue):
+    async def commands_handler(self, commands_queue, states_queue, csv):
         toggle_mapping = {
             'lamp_1': 1,
             'lamp_2': 2,
@@ -30,14 +31,17 @@ class Server:
                 break
 
             for switch in commands:
+                csv.write(f'T{switch}')
                 command = f'T{str(toggle_mapping[switch])}\0'
                 await send_message(command)
 
-    async def states_handler(self, reader, writer, states_queue):
+    async def states_handler(self, reader, writer, states_queue, csv):
         while True:
             try:
                 payload = await reader.read(MAX_BUFFER_SIZE)
                 decoded_states = payload.decode('utf-8')
+                csv.write(decoded_states)
+
                 await states_queue.put(decoded_states)
             except asyncio.IncompleteReadError:
                 host, port, *_ = writer.get_extra_info('peername')
@@ -53,20 +57,21 @@ class Server:
     async def connection_handler(self, reader, writer):
         commands_queue = asyncio.Queue(MAX_QUEUE_SIZE)
         states_queue = asyncio.Queue(MAX_QUEUE_SIZE)
+        csv = CSV()
 
         await self.initial_state()
 
         menu = Menu(commands_queue, states_queue)
         tasks = asyncio.gather(
             menu.start(),
-            self.commands_handler(commands_queue, states_queue),
-            self.states_handler(reader, writer, states_queue)
+            self.commands_handler(commands_queue, states_queue, csv),
+            self.states_handler(reader, writer, states_queue, csv)
         )
 
         try:
             await tasks
-        except Exception as err:
-            print('Closed the menu', err)
+        except Exception:
+            print('Closed the menu')
 
         try:
             for task in asyncio.Task.all_tasks():
@@ -74,9 +79,10 @@ class Server:
 
             print('All tasks finished')
         except Exception as err:
-            print('Error when cancelling tasks: ', err)
+            print('Error when stopping tasks: ', err)
 
         print('Closing connections...')
+        csv.close()
         writer.close()
         await writer.wait_closed()
 
