@@ -8,7 +8,7 @@ class CSV:
         self.file = open(filename, 'w')
 
         fields = ['Date/Time', 'Event']
-        self._writer = csv.DictWriter(self.file, fieldsnames=fields)
+        self._writer = csv.DictWriter(self.file, fieldnames=fields)
         self._writer.writeheader()
 
     def write(self, raw_event):
