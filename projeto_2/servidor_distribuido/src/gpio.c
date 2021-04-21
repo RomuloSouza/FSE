@@ -41,9 +41,6 @@ int serialize_states(char *buff){
     serialize(buff, &size, "sensor_window_room_1:", states.sensor_window_room_1, "%d");
     serialize(buff, &size, "sensor_window_room_2:", states.sensor_window_room_2, "%d");
 
-    printf("size value = %d\n", size);
-    printf("buff len = %d\n", strlen(buff));
-
     return size;
 }
 
@@ -73,6 +70,17 @@ void setup_gpio(){
 
 }
 
+void toggle_switch(int pin){
+    int state = digitalRead(pin);
+
+    if(state)
+        digitalWrite(pin, LOW);
+    else
+        digitalWrite(pin, HIGH);
+
+    _update_state(pin);
+}
+
 // ====================================== LOCAL FUNCTIONS ======================================
 
 void _setup_interrupts(){
@@ -85,19 +93,6 @@ void _setup_interrupts(){
     wiringPiISR(SENSOR_WINDOW_ROOM_1, INT_EDGE_BOTH,  &_update_sensor_window_room_1);
     wiringPiISR(SENSOR_WINDOW_ROOM_2, INT_EDGE_BOTH,  &_update_sensor_window_room_2);
 }
-
-void toggle_switch(int pin){
-    int state = digitalRead(pin);
-
-    if(state)
-        digitalWrite(pin, LOW);
-    else
-        digitalWrite(pin, HIGH);
-
-    _update_state(pin);
-}
-
-
 
 void _initialize_states(){
     states.lamp_1 = digitalRead(LAMP_1);
@@ -142,6 +137,10 @@ void _update_state(int pin){
     }
 }
 
+int _change_state(int state){
+    return state ? 0 : 1;
+}
+
 void _send_message(){
     char msg[512];
 
@@ -149,9 +148,7 @@ void _send_message(){
     send_message(msg);
 }
 
-int _change_state(int state){
-    return state ? 0 : 1;
-}
+// Functions to handle an alteration in a sensor state
 
 void _update_sensor_door_kitchen(){
     states.sensor_door_kitchen = _change_state(states.sensor_door_kitchen);
@@ -169,6 +166,7 @@ void _update_sensor_pres_1(){
     _update_state(SENSOR_PRES_1);
     _send_message();
 }
+
 void _update_sensor_pres_2(){
     states.sensor_pres_2 = _change_state(states.sensor_pres_2);
     _update_state(SENSOR_PRES_2);
@@ -180,6 +178,7 @@ void _update_sensor_window_kitchen(){
     _update_state(SENSOR_WINDOW_KITCHEN);
     _send_message();
 }
+
 void _update_sensor_window_living_room(){
     states.sensor_window_living_room = _change_state(states.sensor_window_living_room);
     _update_state(SENSOR_WINDOW_LIVING_ROOM);
@@ -191,6 +190,7 @@ void _update_sensor_window_room_1(){
     _update_state(SENSOR_WINDOW_ROOM_1);
     _send_message();
 }
+
 void _update_sensor_window_room_2(){
     states.sensor_window_room_2 = _change_state(states.sensor_window_room_2);
     _update_state(SENSOR_WINDOW_ROOM_2);

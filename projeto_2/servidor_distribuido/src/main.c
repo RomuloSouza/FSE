@@ -23,6 +23,7 @@ void sig_alarm(int signal){
 
     char serialized_temperature[MAX_BUFFER_SIZE];
     serialize_temperature(serialized_temperature, temperature, humidity);
+    printf("serialized_temperature = %s", serialize_temperature);
     send_message(serialized_temperature);
 
     alarm(1);
@@ -30,7 +31,7 @@ void sig_alarm(int signal){
 
 void sig_stop(int signal){
     if (signal == SIGINT){
-        printf("Finalizando as threads...\n");
+        printf("Fechando os sockets...\n");
         stop_server();
         close_client_socket();
         sleep(1);
