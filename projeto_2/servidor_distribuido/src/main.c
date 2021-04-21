@@ -14,6 +14,8 @@
 struct identifier id;
 struct bme280_dev dev;
 
+int is_running = 1;
+
 void sig_alarm(int signal){
     float temperature, humidity;
 
@@ -23,18 +25,22 @@ void sig_alarm(int signal){
 
     char serialized_temperature[MAX_BUFFER_SIZE];
     serialize_temperature(serialized_temperature, temperature, humidity);
-    printf("serialized_temperature = %s", serialize_temperature);
     send_message(serialized_temperature);
 
-    alarm(1);
+    if (is_running){
+        alarm(1);
+    }
 }
 
 void sig_stop(int signal){
     if (signal == SIGINT){
-        printf("Fechando os sockets...\n");
+        printf("Closing sockets...\n");
+        is_running = 0;
+        usleep(1100000); // Awaits the last alarm to execute
+
         stop_server();
         close_client_socket();
-        sleep(1);
+        usleep(500000)
 
         exit(0);
     }

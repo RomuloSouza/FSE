@@ -11,7 +11,7 @@ from menu import Menu
 
 
 class Server:
-    async def initial_state(self, writer=None):
+    async def initial_state(self):
         print('Requesting initial state...')
         await send_message('INITIAL\0')
 
