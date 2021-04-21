@@ -40,7 +40,8 @@ class Server:
             try:
                 payload = await reader.read(MAX_BUFFER_SIZE)
                 decoded_states = payload.decode('utf-8')
-                csv.write(decoded_states)
+                if decoded_states:
+                    csv.write(decoded_states)
 
                 await states_queue.put(decoded_states)
             except asyncio.IncompleteReadError:
