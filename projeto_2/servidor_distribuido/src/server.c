@@ -1,10 +1,11 @@
 #include <server.h>
+#include <client.h>
 #include <gpio.h>
 
 int servidorSocket;
+int socketCliente;
 
-
-void TrataClienteTCP(int socketCliente) {
+void TrataClienteTCP() {
 	char buffer[MAX_BUFFER_SIZE];
 	int received_length;
 
@@ -14,6 +15,7 @@ void TrataClienteTCP(int socketCliente) {
     E -> ask for enviroment temperature and humidity
     I -> ask for initial state of the system
     S -> ask for state of switches (lamps and airs)
+	T -> toggle switch
     */
 
 	if((received_length = recv(socketCliente, buffer, MAX_BUFFER_SIZE-1, 0)) < 0){
@@ -21,34 +23,62 @@ void TrataClienteTCP(int socketCliente) {
         return;
     }
 
-    printf("o que eu recebi no buffer: %s\n", buffer);
+    printf("Received message from central server: %s\n", buffer);
 
     switch(buffer[0]){
-        case 'E':
-            printf("Showing temperature vrau\n");
-            break;
-        case 'I':
-            printf("Showing initial state vrau\n");
-            break;
-        case 'S':
-            printf("Showing state of switches vrau\n");
-            break;
-        default:
-            printf("Error when mapping buffer to responsabilty\n");
-            return;
+	case 'E':
+		printf("Showing temperature vrau\n");
+		break;
+	case 'I':
+		printf("Showing initial state vrau\n");
+		break;
+	case 'S':
+		printf("Showing state of switches vrau\n");
+		break;
+	case 'T':
+		switch (buffer[1]){
+		case '1':
+			printf("Toogle 1\n");
+			break;
+		case '2':
+			printf("Toogle 2\n");
+			break;
+		case '3':
+			printf("Toogle 3\n");
+			break;
+		case '4':
+			printf("Toogle 4\n");
+			break;
+		case '5':
+			printf("Toogle 5\n");
+			break;
+		case '6':
+			printf("Toogle 6\n");
+			break;
+
+		default:
+			printf("Error when mapping TOGGLE to responsabilty\n");
+		}
+		break;
+	default:
+		printf("Error when mapping BUFFER to responsabilty\n");
+		return;
     }
 
     char response[MAX_BUFFER_SIZE];
     int size = serialize_states(response);
     printf("size returned = %d\n", size);
-    printf("sizeof(response) = %d\n", sizeof(response));
-    if(send(socketCliente, response, sizeof(response), 0) != sizeof(response))
-        printf("Erro no envio - send()\n");
+	printf("Sent: %s\n", response);
+
+    // if(send(socketCliente, response, sizeof(response), 0) != sizeof(response))
+    //     printf("Erro no envio - send()\n");
+
+	send_message(response);
+
 
 }
 
 void create_server(){
-	int socketCliente;
 	struct sockaddr_in servidorAddr;
 	struct sockaddr_in clienteAddr;
 	unsigned short servidorPorta;
@@ -84,11 +114,12 @@ void create_server(){
 		
 		printf("Conexão do Cliente %s\n", inet_ntoa(clienteAddr.sin_addr));
 		
-		TrataClienteTCP(socketCliente);
+		TrataClienteTCP();
 		close(socketCliente);
 	}
 }
 
 void stop_server(){
+	close(socketCliente);
 	close(servidorSocket);
 }

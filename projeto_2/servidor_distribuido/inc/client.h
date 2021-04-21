@@ -10,8 +10,8 @@
 
 #define MAX_BUFFER_SIZE 512
 
-void open_socket();
+void open_client_socket();
 void send_message(char *buffer);
-void close_socket();
+void close_client_socket();
 
 #endif

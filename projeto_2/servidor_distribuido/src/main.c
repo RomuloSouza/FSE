@@ -12,7 +12,7 @@
 #include <client.h>
 #include <pthread.h>
 
-pthread_t server_thread;
+// pthread_t server_thread;
 
 void sig_handler(int signal){
     if (signal == SIGINT){
@@ -20,8 +20,8 @@ void sig_handler(int signal){
 
         printf("Finalizando as threads...\n");
         stop_server();
-        pthread_cancel(server_thread);
-        close_socket();
+        // pthread_cancel(server_thread);
+        close_client_socket();
         sleep(1);
 
         exit(0);
@@ -29,7 +29,7 @@ void sig_handler(int signal){
 }
 
 int main(int argc, const char * argv[]) {
-    float te, humidity;
+    // float te, humidity;
 
     struct identifier id;
     struct bme280_dev dev;
@@ -45,25 +45,25 @@ int main(int argc, const char * argv[]) {
     setup_gpio(&states);
 
     // Start server socket
-    pthread_create(&server_thread, NULL, (void*)create_server, NULL);
+    // pthread_create(&server_thread, NULL, (void*)create_server, NULL);
 
     // Start client socket
-    open_socket();
-    char msg[] = {"minha primeira msg de teste\n"};
-    send_message(msg);
+    open_client_socket();
 
-    // Create CSV file
-    // create_file();
+    // char msg[] = {"minha primeira msg de teste\n"};
+    // send_message(msg);
 
-    while(1){
-        read_temperature_i2c(&dev, &te, &humidity);
-        printf("Evironment temperature = %f\n", te);
-        printf("Humidity = %f\n", humidity);
+    create_server();
 
-        // toggle_switch(0);
+    // while(1){
+    //     read_temperature_i2c(&dev, &te, &humidity);
+    //     printf("Evironment temperature = %f\n", te);
+    //     printf("Humidity = %f\n", humidity);
 
-        sleep(2);
-    }
+    //     // toggle_switch(0);
+
+    //     sleep(2);
+    // }
 
    return 0;
 }

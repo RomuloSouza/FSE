@@ -17,11 +17,11 @@ class Menu:
     class CheckboxListNoScroll(CheckboxList):
         show_scrollbar = False
 
-    def __init__(self, commands_queue):
+    def __init__(self, commands_queue, states_queue):
         self.kb = KeyBindings()
         self.is_running = True
         self.commands_queue = commands_queue
-        self.states_queue = asyncio.Queue(MAX_QUEUE_SIZE)
+        self.states_queue = states_queue
 
         self.temperature = 0
         self.humidity = 0
@@ -55,7 +55,6 @@ class Menu:
         }
 
         self.switches = self.get_switches()
-        self.update_switches()
 
         self.sensors_structure = {
             'sensor_pres_1': {
@@ -92,37 +91,38 @@ class Menu:
             },
         }
         self.sensors = self.get_sensors()
+
+        self.update_switches()
         self.update_sensors()
 
-        @self.kb.add('c-c')
+        @self.kb.add('q')
         def exit_(event):
             """
-            Pressing Ctrl-C will exit the user interface.
+            Pressing Q will exit the user interface.
             """
             self.stop()
 
         @self.kb.add('s')
-        async def send(event):
+        def send(event):
+            # TOGGLE EVENT
             selected_switches = self.switches.current_values
-            await self.commands_queue.put(selected_switches)
+            asyncio.create_task(self.commands_queue.put(selected_switches))
 
-        @self.kb.add('d')
-        async def vish(event):
-            """TESTE
-            """
-            if self.switches_structure['lamp_1']['value']:
-                switch = {
-                    'lamp_1': 0
-                }
-                self.sensors_structure['sensor_pres_1']['value'] = 0
+    def bind_state(self, current_state):
+        current_state = current_state.split(';')
+        states = filter(None, current_state)
+        for state in states:
+            key, value = state.split(':')
+            if key == 'temperature':
+                self.temperature = int(value)
+            elif key == 'humidity':
+                self.humidity = int(value)
+            elif key in self.switches_structure:
+                self.switches_structure[key]['value'] = int(value)
+            elif key in self.sensors_structure:
+                self.sensors_structure[key]['value'] = int(value)
             else:
-                switch = {
-                    'lamp_1': 1
-                }
-                self.sensors_structure['sensor_pres_1']['value'] = 1
-
-            self.temperature += 1
-            await self.states_queue.put(switch)
+                print('Error when binding initial state of switches/sensors')
 
     def get_environment(self):
         environ_html = HTML(
@@ -182,11 +182,15 @@ class Menu:
             self.sensors[idx].content.text = get_text_colored(key)
 
     async def update(self):
+        counter = 0
         while self.is_running:
-            switches = await self.states_queue.get()
+            new_state = await self.states_queue.get()
 
-            for key, value in switches.items():
-                self.switches_structure[key]['value'] = value
+            if new_state:
+                self.bind_state(new_state)
+            else:
+                # TODO REMOVE PRINT
+                print('INVALID NEW STATE')
 
             self.update_environment()
             self.update_switches()
@@ -200,7 +204,11 @@ class Menu:
 
         app = get_app()
         if app.is_running:
+            print('exiting stop:')
             app.exit()
+        
+        print('finished stop:')
+
 
     async def start(self):
         root_aux = VSplit([

@@ -2,7 +2,7 @@
 
 int clienteSocket;
 
-void open_socket(){
+void open_client_socket(){
     const char HOST_CENTRAL[] = {"192.168.0.53"};
     const int PORT_CENTRAL = 10009;
 
@@ -30,22 +30,22 @@ void open_socket(){
 
 void send_message(char *buffer){
     int buffer_size = strlen(buffer);
-    int bytes_recieved;
+    // int bytes_recieved;
 
     if(send(clienteSocket, buffer, buffer_size, 0) != buffer_size){
 		printf("Error sending message: number of bytes sent is different of the buffer message\n");
         return;
     }
 
-    char response[MAX_BUFFER_SIZE];
-    if((bytes_recieved = recv(clienteSocket, response, MAX_BUFFER_SIZE-1, 0)) <= 0)
-        printf("Did not receive the bytes sent\n");
+    // char response[MAX_BUFFER_SIZE];
+    // if((bytes_recieved = recv(clienteSocket, response, MAX_BUFFER_SIZE-1, 0)) <= 0)
+    //     printf("Did not receive the bytes sent\n");
 
-    response[bytes_recieved] = '\n';
-    printf("Response from central server: %s\n", response);
+    // response[bytes_recieved] = '\n';
+    // printf("Response from central server: %s\n", response);
 }
 
-void close_socket(){
+void close_client_socket(){
     close(clienteSocket);
 }
 

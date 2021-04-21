@@ -4,7 +4,18 @@
 // Variable shared between modules
 States states;
 
-void _update_sensor_press_1();
+void _update_sensor_door_kitchen();
+void _update_sensor_door_living_room();
+
+void _update_sensor_pres_1();
+void _update_sensor_pres_2();
+
+void _update_sensor_window_kitchen();
+void _update_sensor_window_living_room();
+
+void _update_sensor_window_room_1();
+void _update_sensor_window_room_2();
+
 void _initialize_states();
 
 int serialize_states(char *buff){
@@ -54,15 +65,10 @@ void setup_gpio(){
 
     _initialize_states();
 
-    printf("Tentando serializar os estados...\n");
-    char buff[1024];
-    serialize_states(buff);
-    printf("estado serializado = %s\n", buff);
-
 }
 
 void setup_interrupts(){
-    wiringPiISR(SENSOR_PRES_1, INT_EDGE_BOTH,  &_update_sensor_press_1);
+    wiringPiISR(SENSOR_PRES_1, INT_EDGE_BOTH,  &_update_sensor_pres_1);
 }
 
 void toggle_switch(int pin){
@@ -99,6 +105,32 @@ int _change_state(int state){
     return state ? 0 : 1;
 }
 
-void _update_sensor_press_1(){
+void _update_sensor_door_kitchen(){
+    states.sensor_door_kitchen = _change_state(states.sensor_door_kitchen);
+}
+void _update_sensor_door_living_room(){
+    states.sensor_door_living_room = _change_state(states.sensor_door_living_room);
+}
+
+void _update_sensor_pres_1(){
+    printf("state sensor pres_1 antes = %d\n", states.sensor_pres_1);
     states.sensor_pres_1 = _change_state(states.sensor_pres_1);
+    printf("state sensor pres_1 dps = %d\n", states.sensor_pres_1);
+}
+void _update_sensor_pres_2(){
+    states.sensor_pres_2 = _change_state(states.sensor_pres_2);
+}
+
+void _update_sensor_window_kitchen(){
+    states.sensor_window_kitchen = _change_state(states.sensor_window_kitchen);
+}
+void _update_sensor_window_living_room(){
+    states.sensor_window_living_room = _change_state(states.sensor_window_living_room);
+}
+
+void _update_sensor_window_room_1(){
+    states.sensor_window_room_1 = _change_state(states.sensor_window_room_1);
+}
+void _update_sensor_window_room_2(){
+    states.sensor_window_room_2 = _change_state(states.sensor_window_room_2);
 }
