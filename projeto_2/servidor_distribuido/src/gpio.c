@@ -1,5 +1,6 @@
 #include <gpio.h>
 #include <serializer.h>
+#include <client.h>
 
 // Variable shared between modules
 States states;
@@ -16,6 +17,8 @@ void _update_sensor_window_living_room();
 void _update_sensor_window_room_1();
 void _update_sensor_window_room_2();
 
+void _send_message();
+void _setup_interrupts();
 void _initialize_states();
 void _update_state(int pin);
 int _change_state(int state);
@@ -65,12 +68,22 @@ void setup_gpio(){
     pinMode(SENSOR_WINDOW_ROOM_1, OUTPUT);
     pinMode(SENSOR_WINDOW_ROOM_2, OUTPUT);
 
+    _setup_interrupts();
     _initialize_states();
 
 }
 
-void setup_interrupts(){
+// ====================================== LOCAL FUNCTIONS ======================================
+
+void _setup_interrupts(){
     wiringPiISR(SENSOR_PRES_1, INT_EDGE_BOTH,  &_update_sensor_pres_1);
+    wiringPiISR(SENSOR_PRES_2, INT_EDGE_BOTH,  &_update_sensor_pres_2);
+    wiringPiISR(SENSOR_DOOR_KITCHEN, INT_EDGE_BOTH,  &_update_sensor_door_kitchen);
+    wiringPiISR(SENSOR_WINDOW_KITCHEN, INT_EDGE_BOTH,  &_update_sensor_window_kitchen);
+    wiringPiISR(SENSOR_DOOR_LIVING_ROOM, INT_EDGE_BOTH,  &_update_sensor_door_living_room);
+    wiringPiISR(SENSOR_WINDOW_LIVING_ROOM, INT_EDGE_BOTH,  &_update_sensor_window_living_room);
+    wiringPiISR(SENSOR_WINDOW_ROOM_1, INT_EDGE_BOTH,  &_update_sensor_window_room_1);
+    wiringPiISR(SENSOR_WINDOW_ROOM_2, INT_EDGE_BOTH,  &_update_sensor_window_room_2);
 }
 
 void toggle_switch(int pin){
@@ -85,7 +98,6 @@ void toggle_switch(int pin){
 }
 
 
-// ====================================== LOCAL FUNCTIONS ======================================
 
 void _initialize_states(){
     states.lamp_1 = digitalRead(LAMP_1);
@@ -130,36 +142,57 @@ void _update_state(int pin){
     }
 }
 
+void _send_message(){
+    char msg[512];
+
+    serialize_states(msg);
+    send_message(msg);
+}
+
 int _change_state(int state){
     return state ? 0 : 1;
 }
 
 void _update_sensor_door_kitchen(){
     states.sensor_door_kitchen = _change_state(states.sensor_door_kitchen);
+    _update_state(SENSOR_DOOR_KITCHEN);
+    _send_message();
 }
 void _update_sensor_door_living_room(){
     states.sensor_door_living_room = _change_state(states.sensor_door_living_room);
+    _update_state(SENSOR_DOOR_LIVING_ROOM);
+    _send_message();
 }
 
 void _update_sensor_pres_1(){
-    printf("state sensor pres_1 antes = %d\n", states.sensor_pres_1);
     states.sensor_pres_1 = _change_state(states.sensor_pres_1);
-    printf("state sensor pres_1 dps = %d\n", states.sensor_pres_1);
+    _update_state(SENSOR_PRES_1);
+    _send_message();
 }
 void _update_sensor_pres_2(){
     states.sensor_pres_2 = _change_state(states.sensor_pres_2);
+    _update_state(SENSOR_PRES_2);
+    _send_message();
 }
 
 void _update_sensor_window_kitchen(){
     states.sensor_window_kitchen = _change_state(states.sensor_window_kitchen);
+    _update_state(SENSOR_WINDOW_KITCHEN);
+    _send_message();
 }
 void _update_sensor_window_living_room(){
     states.sensor_window_living_room = _change_state(states.sensor_window_living_room);
+    _update_state(SENSOR_WINDOW_LIVING_ROOM);
+    _send_message();
 }
 
 void _update_sensor_window_room_1(){
     states.sensor_window_room_1 = _change_state(states.sensor_window_room_1);
+    _update_state(SENSOR_WINDOW_ROOM_1);
+    _send_message();
 }
 void _update_sensor_window_room_2(){
     states.sensor_window_room_2 = _change_state(states.sensor_window_room_2);
+    _update_state(SENSOR_WINDOW_ROOM_2);
+    _send_message();
 }
