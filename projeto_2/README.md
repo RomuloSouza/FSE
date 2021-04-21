@@ -55,11 +55,12 @@ $ make run
 ## Parando a Execução de Forma segura
 
 * Pressione **q** no terminal do servidor central para fechar o menu e mantenha a aplicação
-* Pare a execução no servidor distribuído (ctrl+c)
+* Pare a execução do servidor distribuído (ctrl+c)
+* Pare a execução do servidor central (ctrl+c)
 
 ## Funcionamento do Menu
 
-foto aqui
+![Menu de Controle](./imagens/menu.jpg)
 
 ### Legendas
 
@@ -69,6 +70,8 @@ foto aqui
 ### Comandos
 
 * **q**: fechar o menu
-* **setas para cima/baixo**: selecionar dispositivo no menu
+* **setas para cima/baixo**: percorrer os dispositivos no menu
 * **enter**: selecionar dispositivos a terem o estado alterado
 * **s**: envia os dispositivos que devem ter seus estados alterados para o servidor distribuido (é possível ter mais de um dispositivo selecionado)
+
+Toda vez que a tecla **s** é pressionada, o servidor central irá requisitar uma ação de *toggle* nos dispositivos (Switches), alterando seu estado.
