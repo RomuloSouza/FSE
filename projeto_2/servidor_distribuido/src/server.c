@@ -12,9 +12,7 @@ void TrataClienteTCP() {
     /*
     Characters and responsabilities
 
-    E -> ask for enviroment temperature and humidity
     I -> ask for initial state of the system
-    S -> ask for state of switches (lamps and airs)
 	T -> toggle switch
     */
 
@@ -26,14 +24,8 @@ void TrataClienteTCP() {
     printf("Received message from central server: %s\n", buffer);
 
     switch(buffer[0]){
-	case 'E':
-		printf("Showing temperature vrau\n");
-		break;
 	case 'I':
-		printf("Showing initial state vrau\n");
-		break;
-	case 'S':
-		printf("Showing state of switches vrau\n");
+		printf("Sending initial state!\n");
 		break;
 	case 'T':
 		switch (buffer[1]){
@@ -72,16 +64,10 @@ void TrataClienteTCP() {
     }
 
     char response[MAX_BUFFER_SIZE];
-    int size = serialize_states(response);
-    printf("size returned = %d\n", size);
+    serialize_states(response);
 	printf("Sent: %s\n", response);
 
-    // if(send(socketCliente, response, sizeof(response), 0) != sizeof(response))
-    //     printf("Erro no envio - send()\n");
-
 	send_message(response);
-
-
 }
 
 void create_server(){

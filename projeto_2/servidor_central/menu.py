@@ -2,15 +2,12 @@ import asyncio
 
 from prompt_toolkit import Application
 from prompt_toolkit.application import get_app
-from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.layout.containers import VSplit, Window, HSplit
-from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
+from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.widgets import CheckboxList, Frame, Label
 from prompt_toolkit.formatted_text import HTML
-
-from constants import MAX_QUEUE_SIZE
 
 
 class Menu:
@@ -109,14 +106,17 @@ class Menu:
             asyncio.create_task(self.commands_queue.put(selected_switches))
 
     def bind_state(self, current_state):
+        """
+        State format: <key_1>:<value_1>;<key_2>:<value2>; ...
+        """
         current_state = current_state.split(';')
         states = filter(None, current_state)
         for state in states:
             key, value = state.split(':')
             if key == 'temperature':
-                self.temperature = int(value)
+                self.temperature = float(value)
             elif key == 'humidity':
-                self.humidity = int(value)
+                self.humidity = float(value)
             elif key in self.switches_structure:
                 self.switches_structure[key]['value'] = int(value)
             elif key in self.sensors_structure:
@@ -126,8 +126,8 @@ class Menu:
 
     def get_environment(self):
         environ_html = HTML(
-            f"<foo>Temperature:</foo> {self.temperature:0.2f}\n"
-            f"<foo>Humidity:</foo> {self.humidity:0.2f}\n"
+            f"<foo>Temperature:</foo> {self.temperature:0.4f}\n"
+            f"<foo>Humidity:</foo> {self.humidity:0.4f}\n"
         )
         environ = Window(content=FormattedTextControl(environ_html))
 
@@ -135,8 +135,8 @@ class Menu:
 
     def update_environment(self):
         environ_html = HTML(
-            f"<foo>Temperature:</foo> {self.temperature:0.2f}\n"
-            f"<foo>Humidity:</foo> {self.humidity:0.2f}\n"
+            f"<foo>Temperature:</foo> {self.temperature:0.4f}\n"
+            f"<foo>Humidity:</foo> {self.humidity:0.4f}\n"
         )
 
         self.environment.content.text = environ_html
@@ -182,14 +182,14 @@ class Menu:
             self.sensors[idx].content.text = get_text_colored(key)
 
     async def update(self):
-        counter = 0
         while self.is_running:
             new_state = await self.states_queue.get()
 
             if new_state:
                 self.bind_state(new_state)
+            elif not self.is_running:
+                print('Closing program state received')
             else:
-                # TODO REMOVE PRINT
                 print('INVALID NEW STATE')
 
             self.update_environment()
@@ -206,7 +206,7 @@ class Menu:
         app = get_app()
         if app.is_running:
             app.exit()
-        
+
     async def start(self):
         root_aux = VSplit([
             Frame(
@@ -229,7 +229,11 @@ class Menu:
 
         layout = Layout(root_aux)
 
-        app = Application(layout=layout, full_screen=True, key_bindings=self.kb)
+        app = Application(
+            layout=layout,
+            full_screen=True,
+            key_bindings=self.kb
+        )
         await asyncio.gather(
             self.update(),
             app.run_async(),
